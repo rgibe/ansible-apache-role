@@ -1,0 +1,11 @@
+<VirtualHost *:80>
+
+    ServerAdmin webmaster@{{ service_url }}
+    ServerName {{ service_url }}
+    DocumentRoot "{{ docroot }}"
+    ErrorLog "/var/log/apache2/{{ service_url }}_error.log"
+    CustomLog "/var/log/apache2/{{ service_url }}_access.log" common
+
+    Redirect permanent / https://{{ service_url }}:443/
+
+</VirtualHost>

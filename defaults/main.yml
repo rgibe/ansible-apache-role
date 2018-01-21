@@ -1,0 +1,17 @@
+---
+# defaults file for apache
+apache_modules:
+    ssl: present
+    ratelimit: present
+    alias: present
+    dir: present
+    autoindex: present
+    env: present
+    headers: present
+    deflate: present
+    status: present
+    negotiation: present
+    reqtimeout: present
+    rewrite: absent
+    proxy_ajp: present
+apache_rate_limit: 512 # In KiB

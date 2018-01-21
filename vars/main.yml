@@ -1,0 +1,8 @@
+---
+# Virtual Host vars file
+app_name: '' # e.g. helloWorld
+app_backend: 'localhost:8011/'
+service_url: www.192.168.20.11.xip.io
+docroot: '/var/www/html'
+tls_enabled: true
+ssl_cert_dir: '/etc/apache2/ssl'

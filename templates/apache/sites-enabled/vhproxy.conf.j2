@@ -1,0 +1,27 @@
+{% if tls_enabled %}
+<VirtualHost *:443>
+{% else %}
+<VirtualHost *:80>
+{% endif %}
+
+    ServerAdmin webmaster@{{ service_url }}
+    ServerName {{ service_url }}
+    DocumentRoot {{ docroot }}
+    ErrorLog /var/log/apache2/{{ service_url }}_error.log
+    CustomLog /var/log/apache2/{{ service_url }}_access.log common
+
+    ProxyRequests Off
+    ProxyPreserveHost Off
+    ProxyPass /{{ app_name }} ajp://{{ app_backend }}{{app_name}}
+
+    {% if apache_modules.rewrite == 'present' %}
+    RewriteEngine On
+    RewriteRule ^/$ /{{ app_name }} [L,R]
+    {% endif %}
+
+    {% if tls_enabled %}
+    SSLCertificateFile      /etc/apache2/ssl/{{ service_url }}.crt
+    SSLCertificateKeyFile   /etc/apache2/ssl/{{ service_url }}.key
+    {% endif %}
+
+</VirtualHost>

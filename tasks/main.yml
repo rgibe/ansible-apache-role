@@ -1,0 +1,89 @@
+---
+- name: assertions
+  assert:
+    that:
+    - ansible_os_family == 'Debian'
+
+- name: apt install
+  apt:
+    name: [apache2, apache2-utils]
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+  become: true
+
+- name: create directories
+  file:
+    path: "{{ item }}"
+    state: directory
+  become: true
+  with_items:
+    - "{{ docroot }}"
+    - "{{ ssl_cert_dir }}"
+
+- name: disable default site
+  file:
+    path: /etc/apache2/sites-enabled/000-default.conf
+    state: absent
+  become: true
+  notify: restart apache
+
+- name: enable  modules
+  with_dict: '{{ apache_modules }}'
+  apache2_module:
+      name: '{{ item.key }}'
+      state: '{{ item.value }}'
+  become: true
+  notify: restart apache
+
+- name: add configuration templates
+  with_fileglob:
+      - '{{ role_path }}/templates/apache/conf-enabled/*.conf'
+  template:
+      src: '{{ item }}'
+      dest: '/etc/apache2/conf-enabled/{{ item|basename }}'
+      owner: root
+      group: 0
+      mode: 0o0644
+  become: true
+  notify:
+      - restart apache
+
+- name: create tls certificates
+  command:
+    openssl req -new -x509 -nodes -out {{ service_url }}.crt -keyout {{ service_url }}.key -subj '/CN={{ service_url }}' -days 3650
+    chdir={{ ssl_cert_dir }}
+    creates={{ ssl_cert_dir }}/{{ service_url }}.crt
+  become: true
+  when: tls_enabled
+  notify: restart apache
+
+- name: enable vh config files
+  template:
+    src: '{{ role_path }}/templates/apache/sites-enabled/{{ item }}'
+    dest: /etc/apache2/sites-enabled/{{ (item | splitext)[0] }}
+  with_items:
+    - vhproxy.conf.j2
+    - vhredirect.conf.j2
+  become: true
+  notify: restart apache
+
+- name: validate config
+  command: apache2ctl configtest
+  changed_when: False
+
+- name: enable apache service
+  become: true
+  service:
+      name: apache2
+      state: started
+      enabled: yes
+
+- meta: flush_handlers
+
+- name: wait for apache to recieve requests
+  wait_for:
+      port: 80
+
+- debug:
+    msg: "Service run here: http://{{ service_url }}"
