@@ -5,7 +5,7 @@ This is an "*ansible role*" to manage [Apache HTTP Server](http://httpd.apache.o
 I tried to keep it as simple as I can
 
 ~~~
-ansible-apache-role]$ tree
+[ansible-apache-role]$ tree
 .
 ├── defaults
 │   └── main.yml
@@ -38,7 +38,6 @@ You can try it with a playbook like this
 
 ~~~
 $> more apacheSetup.yml
----
 ---
 - name: Setup Apache and VHs
   hosts: host1
